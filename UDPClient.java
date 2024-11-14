@@ -1,32 +1,42 @@
-// UDPClient.java
-
-// Import the networking libraries
 package udp_s_c;
 
-import java.io.*;
-import java.net.*;
-import java.util.Scanner;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 public class UDPClient {
+    public static void main(String[] args) {
+        DatagramSocket socket = null;
+        try {
+            // Initialize client socket
+            socket = new DatagramSocket();
 
-  public static void main(String[] args) throws IOException {
-    DatagramPacket sendPacket;
-    byte[] sendData;
-    // Create a Datagram Socket
-    DatagramSocket clientSocket = new DatagramSocket();
-    // Set client timeout to be 1 second
-    clientSocket.setSoTimeout(1000);
-    Scanner input = new Scanner(System.in);
-    while (true) {
-      String cmd = input.nextLine();
-      // If client types quit, close the socket and exit
-      if (cmd.equals("QUIT")) {
-        clientSocket.close();
-        System.exit(1);
-      }
-      sendData = cmd.getBytes();
-      sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("127.0.0.1"), 5001);
-      clientSocket.send(sendPacket);
+            // Data to be sent to the server
+            int number = 8;
+            byte[] sendData = String.valueOf(number).getBytes();
+
+            // Server details (address and port)
+            InetAddress serverAddress = InetAddress.getLocalHost();
+            int serverPort = 9999;
+
+            // Sending the data to the server
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
+            socket.send(sendPacket);
+
+            // Buffer to receive the response from the server
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            // Receive the response from the server
+            socket.receive(receivePacket);
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Result from server: " + response);
+        } catch (Exception e) {
+            System.err.println("Client error: " + e.getMessage());
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
     }
-  }
 }
